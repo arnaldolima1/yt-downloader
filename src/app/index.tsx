@@ -1,95 +1,106 @@
-import * as React from 'react';
-import { View } from 'react-native';
-import Animated, { FadeInUp, FadeOutDown, LayoutAnimationConfig } from 'react-native-reanimated';
-import { Info } from '@/lib/icons/Info';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Text } from '@/components/ui/text';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-const GITHUB_AVATAR_URI =
-  'https://github.com/arnaldolima1.png';
+import * as React from "react";
+import { View } from "react-native";
+import { toast } from "sonner-native";
+import Download from "@/actions/Download";
+import { Youtube } from "@/lib/icons/YouTube";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "@/lib/icons/RefresCw";
+import { Rotate } from "@/components/animated/Rotate";
+import { CustomSelect } from "@/components/CustomSelect";
+import { ArrowDownToLine } from "@/lib/icons/ArrowDownToLine";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Screen() {
-  const [progress, setProgress] = React.useState(78);
+  const [url, setUrl] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [quality, setQuality] = React.useState<string | undefined>(undefined);
 
-  function updateProgressValue() {
-    setProgress(Math.floor(Math.random() * 100));
-  }
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    try {
+      if (!url) {
+        toast.info("Invalid URL");
+        return;
+      }
+
+      if (!quality) {
+        toast.info("Select a quality option");
+        return;
+      }
+
+      const response = await Download({ URL: url, quality });
+
+      if (response?.success) {
+        toast.success(response.message);
+      } else {
+        toast.error(response?.message);
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <View className='flex-1 justify-center items-center gap-5 p-6 bg-secondary/30'>
-      <Card className='w-full max-w-sm p-6 rounded-2xl'>
-        <CardHeader className='items-center'>
-          <Avatar alt="Rick Sanchez's Avatar" className='w-24 h-24'>
-            <AvatarImage source={{ uri: GITHUB_AVATAR_URI }} />
-            <AvatarFallback>
-              <Text>AL</Text>
-            </AvatarFallback>
-          </Avatar>
-          <View className='p-3' />
-          <CardTitle className='pb-2 text-center'>Arnaldo Lima</CardTitle>
-          <View className='flex-row'>
-            <CardDescription className='text-base font-semibold'>Developer</CardDescription>
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger className='px-2 pb-0.5 active:opacity-50'>
-                <Info size={14} strokeWidth={2.5} className='w-4 h-4 text-foreground/70' />
-              </TooltipTrigger>
-              <TooltipContent className='py-2 px-4 shadow'>
-                <Text className='native:text-lg'>Freelance</Text>
-              </TooltipContent>
-            </Tooltip>
-          </View>
+    <View className="flex-1 justify-center items-center gap-5 p-6 bg-secondary/30">
+      <Card className="w-full max-w-lg p-6 rounded-2xl">
+        <CardHeader className="items-center">
+          <Youtube className="text-foreground" size={36} />
+          <CardTitle className="py-2 text-center">YouTube Downloader</CardTitle>
         </CardHeader>
+
         <CardContent>
-          <View className='flex-row justify-around gap-3'>
-            <View className='items-center'>
-              <Text className='text-sm text-muted-foreground'>Dimension</Text>
-              <Text className='text-xl font-semibold'>C-137</Text>
-            </View>
-            <View className='items-center'>
-              <Text className='text-sm text-muted-foreground'>Age</Text>
-              <Text className='text-xl font-semibold'>70</Text>
-            </View>
-            <View className='items-center'>
-              <Text className='text-sm text-muted-foreground'>Species</Text>
-              <Text className='text-xl font-semibold'>Human</Text>
+          <View className="flex flex-row items-center justify-center w-full px-4">
+            <View className="flex flex-row items-center gap-2">
+              <CustomSelect
+                onValueChange={setQuality}
+                options={options}
+                className="w-32"
+                contentClassName="w-44"
+                placeholder="Quality"
+              />
+
+              <Input
+                value={url}
+                onChangeText={setUrl}
+                className="w-52"
+                placeholder="https://youtbe.com"
+                aria-labelledby="inputLabel"
+                aria-errormessage="inputError"
+              />
+
+              <Button
+                variant="secondary"
+                onPress={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Rotate duration={500}>
+                    <RefreshCw className="text-foreground" />
+                  </Rotate>
+                ) : (
+                  <ArrowDownToLine className="text-foreground" size={20} />
+                )}
+              </Button>
             </View>
           </View>
         </CardContent>
-        <CardFooter className='flex-col gap-3 pb-0'>
-          <View className='flex-row items-center overflow-hidden'>
-            <Text className='text-sm text-muted-foreground'>Productivity:</Text>
-            <LayoutAnimationConfig skipEntering>
-              <Animated.View
-                key={progress}
-                entering={FadeInUp}
-                exiting={FadeOutDown}
-                className='w-11 items-center'
-              >
-                <Text className='text-sm font-bold text-sky-600'>{progress}%</Text>
-              </Animated.View>
-            </LayoutAnimationConfig>
-          </View>
-          <Progress value={progress} className='h-2' indicatorClassName='bg-sky-600' />
-          <View />
-          <Button
-            variant='outline'
-            className='shadow shadow-foreground/5'
-            onPress={updateProgressValue}
-          >
-            <Text>Update</Text>
-          </Button>
-        </CardFooter>
       </Card>
     </View>
   );
 }
+
+const options = [
+  {
+    label: "Quality",
+    items: [
+      { label: "1080p", value: "137" },
+      { label: "720p", value: "136" },
+      { label: "360p", value: "18" },
+      { label: "MP3", value: "140" },
+    ],
+  },
+];

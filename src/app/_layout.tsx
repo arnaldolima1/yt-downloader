@@ -16,6 +16,8 @@ import {
   Theme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { Toaster } from "sonner-native";
+import { useEffect } from "react";
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -45,10 +47,18 @@ export default function RootLayout() {
       // Adds the background color to the html element to prevent white background on overscroll.
       document.documentElement.classList.add("bg-background");
     }
+
     setAndroidNavigationBar(colorScheme);
     setIsColorSchemeLoaded(true);
     hasMounted.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!isColorSchemeLoaded) {
+      return;
+    }
+    setAndroidNavigationBar(colorScheme);
+  }, [colorScheme]);
 
   if (!isColorSchemeLoaded) {
     return null;
@@ -57,16 +67,26 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <GestureHandlerRootView style={{flex: 1}}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack>
           <Stack.Screen
             name="index"
             options={{
-              title: "Starter Base",
+              title: "YTDownloader",
               headerRight: () => <ThemeToggle />,
             }}
           />
         </Stack>
+        <Toaster
+          duration={3000}
+          richColors={true}
+          visibleToasts={1}
+          position="bottom-center"
+          swipeToDismissDirection={"left"}
+          toastOptions={{
+            style: { maxWidth: "65%", maxHeight: 50 },
+          }}
+        />
         <PortalHost />
       </GestureHandlerRootView>
     </ThemeProvider>
