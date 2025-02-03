@@ -1,6 +1,7 @@
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { Platform } from "react-native";
+import { PermissionsAndroid } from "react-native";
 
 interface DownloadProps {
   URL: string;
@@ -14,12 +15,31 @@ const requestPermissions = async () => {
   return permissions.directoryUri;
 };
 
+const requestExternalStoragePermission = async () => {
+  if (Platform.OS === "android" && Platform.Version === 29) {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: "Permissão de Armazenamento",
+        message:
+          "O aplicativo precisa de permissão para gravar no armazenamento.",
+        buttonNeutral: "Pergunte-me depois",
+        buttonNegative: "Cancelar",
+        buttonPositive: "OK",
+      }
+    );
+    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      throw new Error("Permissão para acessar o armazenamento negada");
+    }
+  }
+};
+
 export default async function Download({ URL, quality }: DownloadProps) {
   try {
     const encodedURL = encodeURIComponent(URL);
 
     const result = await FileSystem.downloadAsync(
-      `https://youtube-api-ebon.vercel.app/download?url=${encodedURL}&itag=${quality}`,
+      `http://192.168.3.209:3001/download?url=${encodedURL}&itag=${quality}`,
       FileSystem.documentDirectory + "temp.mp4"
     );
 
@@ -31,11 +51,7 @@ export default async function Download({ URL, quality }: DownloadProps) {
       )?.[1] || "sem_nome"
     ).replace(/\.[^/.]+$/, "");
 
-    console.log(title);
-
     const mimeType = decodeURIComponent(result.headers["Content-Type"]);
-
-    console.log(mimeType);
 
     const newPath = FileSystem.documentDirectory + title;
 
@@ -44,23 +60,19 @@ export default async function Download({ URL, quality }: DownloadProps) {
       to: newPath,
     });
 
-    if (Platform.OS === "android") {
-      const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-        await requestPermissions(),
-        title,
-        mimeType
-      );
+    const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+      await requestPermissions(),
+      title,
+      mimeType
+    );
 
-      console.log(fileUri);
+    const fileData = await FileSystem.readAsStringAsync(newPath, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
 
-      const fileData = await FileSystem.readAsStringAsync(newPath, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      await FileSystem.writeAsStringAsync(fileUri, fileData, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-    }
+    await FileSystem.writeAsStringAsync(fileUri, fileData, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
 
     return { success: true, message: `Arquivo salvo com sucesso!` };
   } catch (error: any) {
