@@ -60,7 +60,7 @@ export function CustomSelect({
         )}
       >
         <SelectValue
-          className="text-sm text-foreground native:text-lg"
+          className="text-sm text-foreground"
           placeholder={placeholder || "Select an option"}
         />
       </SelectTrigger>

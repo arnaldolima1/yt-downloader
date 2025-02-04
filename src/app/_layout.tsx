@@ -1,5 +1,4 @@
 import "@/styles/global.css";
-
 import * as React from "react";
 import { Stack } from "expo-router";
 import { Platform } from "react-native";
