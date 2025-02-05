@@ -69,10 +69,9 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack>
           <Stack.Screen
-            name="index"
+            name="(tabs)"
             options={{
-              title: "YTDownloader",
-              headerRight: () => <ThemeToggle />,
+              headerShown: false,
             }}
           />
         </Stack>
