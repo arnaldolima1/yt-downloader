@@ -19,7 +19,7 @@ O `yt-downloader` é uma aplicação de linha de comando que permite baixar víd
 ## Como Usar
 1. Clone o repositório:
    ```sh
-   git clone https://github.com/seu-usuario/yt-downloader.git
+   git clone https://github.com/arnaldolima1/yt-downloader.git
    ```
 2. Navegue até o diretorio padrão do projeto:
     ```sh
